@@ -1,9 +1,14 @@
 require 'matrix'
 
-id = 0
+$id = 0
 def get_id
-  id += 1
+  $id += 1
 end
+
+MOVE_UP = 0
+MOVE_LEFT = 1
+MOVE_DOWN = 2
+MOVE_RIGHT = 3
 
 class Game
   def initialize field_size
@@ -21,7 +26,7 @@ class Game
 
   def add_bot bot
     @bots << bot
-    @positions[bot] = Vector[0,0,0]
+    @positions[bot] = Vector[0,0]
   end
 
   def next_round
@@ -37,6 +42,13 @@ class Game
 
   def filter_sight bot, field
     field
+  end
+
+  def move_possible? bot, direction
+    case direction
+      when MOVE_UP
+        @field[@positions[bot].x][@positions[bot].y+1]
+    end
   end
 end
 
