@@ -34,6 +34,9 @@ class Game
     @bots.each do |bot|
       bot.act @water, @positions[bot], filter_sight bot, @field
     end
+    @bots.each do |bot|
+      @bots.delete bot unless height @positions[bot] > @water
+    end
   end
 
   def raise_water
