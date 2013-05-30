@@ -9,6 +9,7 @@ MOVE_UP = 0
 MOVE_LEFT = 1
 MOVE_DOWN = 2
 MOVE_RIGHT = 3
+SIGHT_RADIUS = 5
 
 class Game
   def initialize field_size
@@ -41,7 +42,7 @@ class Game
   end
 
   def filter_sight bot, field
-    field
+    field[@positions[bot][0] - SIGHT_RADIUS .. @positions[bot][0] + SIGHT_RADIUS][@positions[bot][1] - SIGHT_RADIUS .. @positions[bot][1] + SIGHT_RADIUS]
   end
 
   def move_possible? bot, direction
