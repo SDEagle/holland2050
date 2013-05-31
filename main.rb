@@ -93,9 +93,9 @@ class Game
 
   def draw
     @field.draw do |field, position|
-      s = field.height.to_s
+      s = '%02d' % (field.water ? @water : field.height)
       if field.water
-        @water.to_s.blue
+        s.blue
       elsif @positions.has_value? position
         s.red
       else
