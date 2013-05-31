@@ -78,6 +78,11 @@ class Game
       else
         false
     end
+
+    # Pushing bots around.
+    @bots.each do |other|
+      move other, direction unless other == bot || @positions[other] != @positions[bot]
+    end
   end
 
   def dig bot
