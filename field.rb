@@ -3,7 +3,7 @@
 class Field
   def initialize size, data_class
     @size = size
-    @data = Array.new(@size[0]) { Array.new(@size[1], data_class.new) }
+    @data = Array.new(@size[0]) { Array.new(@size[1]) { data_class.new } }
   end
 
   def [] *args
@@ -31,6 +31,19 @@ class Field
       column.each do |date|
         yield date
       end
+    end
+  end
+
+  def draw
+    # our field is
+    #    +y
+    # -x 0 +x
+    #    -y
+    (height - 1).downto(0) do |y|
+      width.times do |x|
+        print "#{yield self[x,y], Vector[x,y]} "
+      end
+      puts ''
     end
   end
 end

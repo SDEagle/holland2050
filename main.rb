@@ -104,27 +104,16 @@ class Game
     @field[@positions[bot]].height += 1
   end
 
-  def output
-    # orientation foo
-    # our field is
-    #    +y
-    # -x 0 +x
-    #    -y
-    puts 'the field'
-    (@field.height - 1).downto(0) do |y|
-      @field.width.times do |x|
-        output = @field[x, y].height.to_s
-        if @field[x, y].height <= @water
-          output = output.blue
-        elsif @positions.has_value? Vector[x,y]
-          output = output.red
-        else
-          output = output.green
-        end
-        print output
-        print ' '
+  def draw
+    @field.draw do |field, position|
+      s = field.height.to_s
+      if field.height <= @water
+        s.blue
+      elsif @positions.has_value? position
+        s.red
+      else
+        s.green
       end
-      puts ''
     end
   end
 end
@@ -133,6 +122,6 @@ g = Game.new 20
 b = Bot.new g
 b2 = Bot.new g
 b.move RIGHT
-g.output
 b2.move RIGHT
-g.output
+b2.raise
+g.draw
