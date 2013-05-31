@@ -1,29 +1,32 @@
 require 'matrix'
 require 'colorize'
+require_relative 'bot'
 
 $id = 0
 def get_id
   $id += 1
 end
 
-MOVE_UP = 0
-MOVE_LEFT = 1
-MOVE_DOWN = 2
-MOVE_RIGHT = 3
+UP = 0
+LEFT = 1
+DOWN = 2
+RIGHT = 3
 SIGHT_RADIUS = 5
 
 class Game
   def initialize field_size
-    @field = []
+    @field_size = Vector[field_size, field_size]
+    @field = Array.new(@field_size[1]) { Array.new(@field_size[0], 3) }
+
     @water = 0
+
     @bots = []
     @positions = {}
-    @field = Array.new field_size, Array.new(field_size, 3)
   end
 
   def add_bot bot
     @bots << bot
-    @positions[bot] = Vector[0,0]
+    @positions[bot] = Vector[rand(@field_size[0]), rand(@field_size[0])]
   end
 
   def next_round
@@ -46,16 +49,16 @@ class Game
   end
 
   def move_possible? bot, direction
-    possible_height = height @positions[bot] + 1
+    possible_height = height(@positions[bot]) + 1
     case direction
-      when MOVE_UP
-        possible_height >= @field[@positions[bot][0]][@positions[bot][1]+1]
-      when MOVE_LEFT
-        possible_height >= @field[@positions[bot][0]-1][@positions[bot][1]]
-      when MOVE_DOWN
-        possible_height >= @field[@positions[bot][0]][@positions[bot][1]-1]
-      when MOVE_RIGHT
-        possible_height >= @field[@positions[bot][0]+1][@positions[bot][1]]
+      when UP
+        possible_height >= @field[@positions[bot][0]][@positions[bot][1]+1] && @positions[bot][1] < @field_size[1] - 1
+      when LEFT
+        possible_height >= @field[@positions[bot][0]-1][@positions[bot][1]] && @positions[bot][0] > 0
+      when DOWN
+        possible_height >= @field[@positions[bot][0]][@positions[bot][1]-1] && @positions[bot][1] > 0
+      when RIGHT
+        possible_height >= @field[@positions[bot][0]+1][@positions[bot][1]] && @positions[bot][0] < @field_size[0] - 1
       else
         false
     end
@@ -63,14 +66,14 @@ class Game
 
   def move bot, direction
     case direction
-      when MOVE_UP
-        @positions[bot][1] += 1
-      when MOVE_LEFT
-        @positions[bot][0] -= 1
-      when MOVE_DOWN
-        @positions[bot][1] -= 1
-      when MOVE_RIGHT
-        @positions[bot][0] += 1
+      when UP
+        @positions[bot] += Vector[0,1]
+      when LEFT
+        @positions[bot] += Vector[-1,0]
+      when DOWN
+        @positions[bot] += Vector[0,-1]
+      when RIGHT
+        @positions[bot] += Vector[1,0]
       else
         false
     end
@@ -85,7 +88,7 @@ class Game
     @field[@positions[bot][0]][@positions[bot][1]] -= 1
   end
 
-  def raise_possible bot
+  def raise_possible? bot
     current_height = height @positions[bot]
     height(@positions[bot] + Vector[1, 0]) >= current_height ||
     height(@positions[bot] + Vector[1, -1]) >= current_height ||
@@ -102,7 +105,7 @@ class Game
   end
 
   def height position
-    @field[position[0]][@field[1]]
+    @field[position[0]][position[1]]
   end
 
   def output
@@ -111,6 +114,7 @@ class Game
     #    +y
     # -x 0 +x
     #    -y
+    puts 'the field'
     (@field[0].size - 1).downto(0) do |y|
       @field.size.times do |x|
         output = @field[x][y].to_s
@@ -124,46 +128,15 @@ class Game
         print output
         print ' '
       end
-      puts ""
+      puts ''
     end
   end
 end
 
-class Bot
-  attr_reader :id
-
-  def initialize game
-    @game = game
-    @id = get_id
-  end
-
-  def move direction
-    game.move self, direction if move_possible? direction
-  end
-
-  def move_possible? direction
-    game.move_possible? self, direction
-  end
-
-  def dig
-    game.dig self
-  end
-
-  def raise_possible?
-    game.raise_possible? self
-  end
-
-  def raise
-    game.dig self
-  end
-
-  def == other
-    return false unless other.is_a? Bot
-    @id == other.id
-  end
-
-  def hash
-    @id.hash
-  end
-end
-
+#g = Game.new 20
+#b = Bot.new g
+#b2 = Bot.new g
+#b.move RIGHT
+#g.output
+#b2.move RIGHT
+#g.output
