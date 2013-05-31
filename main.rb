@@ -11,7 +11,6 @@ UP = 0
 LEFT = 1
 DOWN = 2
 RIGHT = 3
-SIGHT_RADIUS = 5
 
 class Game
   def initialize field_size
@@ -22,6 +21,9 @@ class Game
 
     @bots = []
     @positions = {}
+
+    @sight_radius = 5
+    @actions_per_round = 3
   end
 
   def add_bot bot
@@ -29,9 +31,11 @@ class Game
     @positions[bot] = Vector[rand(@field_size[0]), rand(@field_size[0])]
   end
 
-  def next_round
-    @bots.each do |bot|
-      bot.act @water, @positions[bot], filter_sight(bot, @field)
+  def perform_round
+    @actions_per_round.times do
+      @bots.each do |bot|
+        bot.act @water, @positions[bot], filter_sight(bot, @field)
+      end
     end
     raise_water
     @bots.each do |bot|
@@ -45,7 +49,7 @@ class Game
 
   # Returns an array containing only fields around the bot within sight.
   def filter_sight bot, field
-    field[@positions[bot][0] - SIGHT_RADIUS, 2 * SIGHT_RADIUS].map { |column| column[@positions[bot][1] - SIGHT_RADIUS, 2 * SIGHT_RADIUS] }
+    field[@positions[bot][0] - @sight_radius, 2 * @sight_radius].map { |column| column[@positions[bot][1] - @sight_radius, 2 * @sight_radius] }
   end
 
   def move_possible? bot, direction
