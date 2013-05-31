@@ -44,8 +44,9 @@ class Game
     @water += 1
   end
 
+  # Returns an array containing only fields around the bot within sight.
   def filter_sight bot, field
-    field[@positions[bot][0] - SIGHT_RADIUS .. @positions[bot][0] + SIGHT_RADIUS][@positions[bot][1] - SIGHT_RADIUS .. @positions[bot][1] + SIGHT_RADIUS]
+    field[@positions[bot][0] - SIGHT_RADIUS, 2 * SIGHT_RADIUS][@positions[bot][1] - SIGHT_RADIUS, 2 * SIGHT_RADIUS]
   end
 
   def move_possible? bot, direction
