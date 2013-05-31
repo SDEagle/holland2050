@@ -2,6 +2,7 @@ require 'matrix'
 require 'colorize'
 require_relative 'bot'
 require_relative 'field'
+require_relative 'map'
 
 $id = 0
 def get_id
@@ -15,9 +16,8 @@ RIGHT = 3
 DIRECTIONS = { UP => Vector[0, 1], LEFT => Vector[-1, 0], DOWN => Vector[0, -1], RIGHT => Vector[1, 0] }
 
 class Game
-  def initialize field_size
-    @field = Field.new Vector[field_size, field_size], Struct.new('FieldData', :height, :water)
-    @field.each { |field, _| field.height = 3; field.water = false }
+  def initialize field_size, height
+    @field = Map.generate field_size, height
 
     @water = 0
 
@@ -107,7 +107,7 @@ class Game
   end
 end
 
-g = Game.new 20
+g = Game.new 20, 10
 b = Bot.new g
 b2 = Bot.new g
 b.move RIGHT
