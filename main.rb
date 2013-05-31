@@ -1,6 +1,7 @@
 require 'matrix'
 require 'colorize'
 require_relative 'bot'
+require_relative 'field'
 
 $id = 0
 def get_id
@@ -14,8 +15,8 @@ RIGHT = 3
 
 class Game
   def initialize field_size
-    @field_size = Vector[field_size, field_size]
-    @field = Array.new(@field_size[1]) { Array.new(@field_size[0], 3) }
+    @field = Field.new Vector[field_size, field_size], Struct.new('FieldData', :height)
+    @field.each { |field| field.height = 3 }
 
     @water = 0
 
@@ -28,18 +29,18 @@ class Game
 
   def add_bot bot
     @bots << bot
-    @positions[bot] = Vector[rand(@field_size[0]), rand(@field_size[0])]
+    @positions[bot] = Vector[rand(@field.width), rand(@field.height)]
   end
 
   def perform_round
     @actions_per_round.times do
       @bots.each do |bot|
-        bot.act @water, @positions[bot], filter_sight(bot, @field)
+        bot.act @water, @positions[bot], @field.filter_sight(@positions[bot], @sight_radius)
       end
     end
     raise_water
     @bots.each do |bot|
-      @bots.delete bot unless height @positions[bot] > @water
+      @bots.delete bot unless  @field[@positions[bot]].height > @water
     end
   end
 
@@ -47,22 +48,17 @@ class Game
     @water += 1
   end
 
-  # Returns an array containing only fields around the bot within sight.
-  def filter_sight bot, field
-    field[@positions[bot][0] - @sight_radius, 2 * @sight_radius].map { |column| column[@positions[bot][1] - @sight_radius, 2 * @sight_radius] }
-  end
-
   def move_possible? bot, direction
-    possible_height = height(@positions[bot]) + 1
+    possible_height = @field[@positions[bot]].height + 1
     case direction
       when UP
-        possible_height >= @field[@positions[bot][0]][@positions[bot][1]+1] && @positions[bot][1] < @field_size[1] - 1
+        possible_height >= @field[@positions[bot] + Vector[0,1]].height && @positions[bot][1] < @field.height - 1
       when LEFT
-        possible_height >= @field[@positions[bot][0]-1][@positions[bot][1]] && @positions[bot][0] > 0
+        possible_height >= @field[@positions[bot] + Vector[-1,0]].height && @positions[bot][0] > 0
       when DOWN
-        possible_height >= @field[@positions[bot][0]][@positions[bot][1]-1] && @positions[bot][1] > 0
+        possible_height >= @field[@positions[bot] + Vector[0,-1]].height && @positions[bot][1] > 0
       when RIGHT
-        possible_height >= @field[@positions[bot][0]+1][@positions[bot][1]] && @positions[bot][0] < @field_size[0] - 1
+        possible_height >= @field[@positions[bot] + Vector[1,0]].height && @positions[bot][0] < @field.width[0] - 1
       else
         false
     end
@@ -89,27 +85,23 @@ class Game
   end
 
   def dig bot
-    @field[@positions[bot][0]][@positions[bot][1]] -= 1
+    @field[@positions[bot]].height -= 1
   end
 
   def raise_possible? bot
-    current_height = height @positions[bot]
-    height(@positions[bot] + Vector[1, 0]) >= current_height ||
-    height(@positions[bot] + Vector[1, -1]) >= current_height ||
-    height(@positions[bot] + Vector[0, -1]) >= current_height ||
-    height(@positions[bot] + Vector[-1, -1]) >= current_height ||
-    height(@positions[bot] + Vector[-1, 0]) >= current_height ||
-    height(@positions[bot] + Vector[-1, 1]) >= current_height ||
-    height(@positions[bot] + Vector[0, 1]) >= current_height ||
-    height(@positions[bot] + Vector[1, 1]) >= current_height
+    current_height = @field[@positions[bot]].height
+    @field[@positions[bot] + Vector[1, 0]].height >= current_height ||
+    @field[@positions[bot] + Vector[1, -1]].height >= current_height ||
+    @field[@positions[bot] + Vector[0, -1]].height >= current_height ||
+    @field[@positions[bot] + Vector[-1, -1]].height >= current_height ||
+    @field[@positions[bot] + Vector[-1, 0]].height >= current_height ||
+    @field[@positions[bot] + Vector[-1, 1]].height >= current_height ||
+    @field[@positions[bot] + Vector[0, 1]].height >= current_height ||
+    @field[@positions[bot] + Vector[1, 1]].height >= current_height
   end
 
   def raise bot
-    @field[@positions[bot][0]][@positions[bot][1]] += 1
-  end
-
-  def height position
-    @field[position[0]][position[1]]
+    @field[@positions[bot]].height += 1
   end
 
   def output
@@ -119,10 +111,10 @@ class Game
     # -x 0 +x
     #    -y
     puts 'the field'
-    (@field[0].size - 1).downto(0) do |y|
-      @field.size.times do |x|
-        output = @field[x][y].to_s
-        if @field[x][y] <= @water
+    (@field.height - 1).downto(0) do |y|
+      @field.width.times do |x|
+        output = @field[x, y].height.to_s
+        if @field[x, y].height <= @water
           output = output.blue
         elsif @positions.has_value? Vector[x,y]
           output = output.red
