@@ -12,11 +12,12 @@ UP = 0
 LEFT = 1
 DOWN = 2
 RIGHT = 3
+DIRECTIONS = { UP => Vector[0, 1], LEFT => Vector[-1, 0], DOWN => Vector[0, -1], RIGHT => Vector[1, 0] }
 
 class Game
   def initialize field_size
-    @field = Field.new Vector[field_size, field_size], Struct.new('FieldData', :height)
-    @field.each { |field| field.height = 3 }
+    @field = Field.new Vector[field_size, field_size], Struct.new('FieldData', :height, :water)
+    @field.each { |field, _| field.height = 3; field.water = false }
 
     @water = 0
 
@@ -40,43 +41,36 @@ class Game
     end
     raise_water
     @bots.each do |bot|
-      @bots.delete bot unless  @field[@positions[bot]].height > @water
+      @bots.delete bot if @field[@positions[bot]].water
     end
   end
 
   def raise_water
     @water += 1
+    @field.each do |_, position|
+      flow_to_neighbours position
+    end
+  end
+
+  def flow_to_neighbours position
+    if @field[position].water
+      @field.position_neighbourhood(position).each do |neighbour_position|
+        neighbour = @field[neighbour_position]
+        if !neighbour.water && neighbour.height <= @field[position].height
+          neighbour.water = true
+          flow_to_neighbours neighbour_position
+        end
+      end
+    end
   end
 
   def move_possible? bot, direction
-    possible_height = @field[@positions[bot]].height + 1
-    case direction
-      when UP
-        possible_height >= @field[@positions[bot] + Vector[0,1]].height && @positions[bot][1] < @field.height - 1
-      when LEFT
-        possible_height >= @field[@positions[bot] + Vector[-1,0]].height && @positions[bot][0] > 0
-      when DOWN
-        possible_height >= @field[@positions[bot] + Vector[0,-1]].height && @positions[bot][1] > 0
-      when RIGHT
-        possible_height >= @field[@positions[bot] + Vector[1,0]].height && @positions[bot][0] < @field.width[0] - 1
-      else
-        false
-    end
+    target = @positions[bot] + DIRECTIONS[direction]
+    @field.in_field?(target) && @field[target].height <= @field[@positions[bot]].height + 1
   end
 
   def move bot, direction
-    case direction
-      when UP
-        @positions[bot] += Vector[0,1]
-      when LEFT
-        @positions[bot] += Vector[-1,0]
-      when DOWN
-        @positions[bot] += Vector[0,-1]
-      when RIGHT
-        @positions[bot] += Vector[1,0]
-      else
-        false
-    end
+    @positions[bot] += DIRECTIONS[direction]
 
     # Pushing bots around.
     @bots.each do |other|
@@ -89,15 +83,7 @@ class Game
   end
 
   def raise_possible? bot
-    current_height = @field[@positions[bot]].height
-    @field[@positions[bot] + Vector[1, 0]].height >= current_height ||
-    @field[@positions[bot] + Vector[1, -1]].height >= current_height ||
-    @field[@positions[bot] + Vector[0, -1]].height >= current_height ||
-    @field[@positions[bot] + Vector[-1, -1]].height >= current_height ||
-    @field[@positions[bot] + Vector[-1, 0]].height >= current_height ||
-    @field[@positions[bot] + Vector[-1, 1]].height >= current_height ||
-    @field[@positions[bot] + Vector[0, 1]].height >= current_height ||
-    @field[@positions[bot] + Vector[1, 1]].height >= current_height
+    @field.neighbourhood(@positions[bot]).any? { |neighbour| neighbour.height >= @field[@positions[bot]].height }
   end
 
   def raise bot
@@ -122,6 +108,5 @@ g = Game.new 20
 b = Bot.new g
 b2 = Bot.new g
 b.move RIGHT
-b2.move RIGHT
 b2.raise
 g.draw
