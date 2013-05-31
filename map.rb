@@ -19,6 +19,14 @@ class Map
         end
       end
     end
+
+    min_height = @field.flatten.min
+    @field.each do |inner|
+      inner.map! {
+        |tile| tile - min_height
+      }
+    end
+
     @field
   end
 
