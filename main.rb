@@ -17,7 +17,7 @@ class Game
     @water = 0
     @bots = []
     @positions = {}
-    field_size.times do [i]
+    field_size.times do |i|
       @field << []
       field_size.times do
         @field[i] << 3
