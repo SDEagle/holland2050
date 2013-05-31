@@ -19,7 +19,7 @@ class Game
   def initialize field_size, height
     @field = Map.generate field_size, height
 
-    @water = 0
+    @water = -1
 
     @bots = []
     @positions = {}
@@ -40,9 +40,7 @@ class Game
       end
     end
     raise_water
-    @bots.each do |bot|
-      @bots.delete bot if @field[@positions[bot]].water
-    end
+    @bots.reject! { |bot| @field[@positions[bot]].water }
   end
 
   def raise_water
@@ -59,7 +57,7 @@ class Game
     if @field[position].water
       @field.position_neighbourhood(position).each do |neighbour_position|
         neighbour = @field[neighbour_position]
-        if !neighbour.water && neighbour.height <= @field[position].height
+        if !neighbour.water && (neighbour.height <= @water || neighbour.height <= @field[position].height)
           neighbour.water = true
           flow_to_neighbours neighbour_position
         end
@@ -105,11 +103,21 @@ class Game
       end
     end
   end
+
+  def status
+    puts '-----------------------------------------------------------'
+    puts "bots left: #{@bots.size} - water level: #{@water}"
+    draw
+  end
 end
 
 g = Game.new 20, 10
-b = Bot.new g
-b2 = Bot.new g
-b.move RIGHT
-b2.raise
-g.draw
+5.times do
+  Bot.new g
+end
+
+g.status
+11.times do
+  g.perform_round
+  g.status
+end

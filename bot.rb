@@ -81,4 +81,8 @@ class Bot
   def hash
     @id.hash
   end
+
+  def act _, _, _
+    puts 'implement that shit'
+  end
 end
