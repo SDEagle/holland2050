@@ -1,30 +1,34 @@
+require_relative 'field'
+require 'matrix'
 class Map
   attr_accessor :field
   def initialize field_size, height
-    @field = Array.new(field_size) { Array.new(field_size) { 0 } }
+    @field = Field.new Vector[field_size, field_size], Struct.new('FieldData', :height)
+    @field.each { |field| field.height = 0 }
   end
 
   def generate height
     randoms = []
-    @field.size.times do
-      randoms << [rand(@field.size), rand(@field.size), rand(height)]
+    @field.width.times do
+      randoms << [rand(@field.height), rand(@field.width), rand(height)]
     end
 
-    @field.size.times do |i|
-      @field.size.times do |j|
+    @field.width.times do |i|
+      @field.height.times do |j|
         randoms.each do |peak|
-          @field[i][j] = (peak[2] - dist([i, j], peak)).floor unless @field[i][j] > peak[2] - dist([i, j], peak)
-          @field[i][j] = 0 if @field[i][j] < 0
-          @field[i][j] = height if @field[i][j] > height
+          @field[i,j].height = (peak[2] - dist([i, j], peak)).floor unless @field[i,j].height > peak[2] - dist([i, j], peak)
+          @field[i,j].height = 0 if @field[i,j].height < 0
+          @field[i,j].height = height if @field[i,j].height > height
         end
       end
     end
 
-    min_height = @field.flatten.min
-    @field.each do |inner|
-      inner.map! {
-        |tile| tile - min_height
-      }
+    min_height = height
+    @field.each do |field|
+      min_height = field.height if field.height < min_height
+    end
+    @field.each do |field|
+      field.height -= min_height
     end
 
     @field
