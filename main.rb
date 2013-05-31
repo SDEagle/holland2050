@@ -1,4 +1,5 @@
 require 'matrix'
+require 'colorize'
 
 $id = 0
 def get_id
@@ -17,12 +18,7 @@ class Game
     @water = 0
     @bots = []
     @positions = {}
-    field_size.times do |i|
-      @field << []
-      field_size.times do
-        @field[i] << 3
-      end
-    end
+    @field = Array.new field_size, Array.new(field_size, 3)
   end
 
   def add_bot bot
@@ -33,7 +29,7 @@ class Game
   def next_round
     raise_water
     @bots.each do |bot|
-      bot.act @water, @positions[bot], filter_sight bot, @field
+      bot.act @water, @positions[bot], filter_sight(bot, @field)
     end
     @bots.each do |bot|
       @bots.delete bot unless height @positions[bot] > @water
@@ -46,7 +42,7 @@ class Game
 
   # Returns an array containing only fields around the bot within sight.
   def filter_sight bot, field
-    field[@positions[bot][0] - SIGHT_RADIUS, 2 * SIGHT_RADIUS][@positions[bot][1] - SIGHT_RADIUS, 2 * SIGHT_RADIUS]
+    field[@positions[bot][0] - SIGHT_RADIUS, 2 * SIGHT_RADIUS].map { |column| column[@positions[bot][1] - SIGHT_RADIUS, 2 * SIGHT_RADIUS] }
   end
 
   def move_possible? bot, direction
@@ -81,7 +77,7 @@ class Game
 
     # Pushing bots around.
     @bots.each do |other|
-      move other, direction unless other == bot || @positions[other] != @positions[bot]
+      move other, direction unless @positions[other] != @positions[bot] || other == bot
     end
   end
 
@@ -107,6 +103,29 @@ class Game
 
   def height position
     @field[position[0]][@field[1]]
+  end
+
+  def output
+    # orientation foo
+    # our field is
+    #    +y
+    # -x 0 +x
+    #    -y
+    (@field[0].size - 1).downto(0) do |y|
+      @field.size.times do |x|
+        output = @field[x][y].to_s
+        if @field[x][y] <= @water
+          output = output.blue
+        elsif @positions.has_value? Vector[x,y]
+          output = output.red
+        else
+          output = output.green
+        end
+        print output
+        print ' '
+      end
+      puts ""
+    end
   end
 end
 
