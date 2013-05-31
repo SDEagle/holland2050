@@ -30,10 +30,10 @@ class Game
   end
 
   def next_round
-    raise_water
     @bots.each do |bot|
       bot.act @water, @positions[bot], filter_sight(bot, @field)
     end
+    raise_water
     @bots.each do |bot|
       @bots.delete bot unless height @positions[bot] > @water
     end
@@ -133,10 +133,10 @@ class Game
   end
 end
 
-#g = Game.new 20
-#b = Bot.new g
-#b2 = Bot.new g
-#b.move RIGHT
-#g.output
-#b2.move RIGHT
-#g.output
+g = Game.new 20
+b = Bot.new g
+b2 = Bot.new g
+b.move RIGHT
+g.output
+b2.move RIGHT
+g.output
