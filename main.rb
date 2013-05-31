@@ -47,7 +47,10 @@ class Game
 
   def raise_water
     @water += 1
-    @field.each do |_, position|
+
+    @field.each do |field, position|
+      # spawn water on edge
+      field.water = true if field.height <= @water && (position[0] == 0 || position[1] == 0 || position[0] == @field.width - 1 || position[1] == @field.height - 1)
       flow_to_neighbours position
     end
   end
@@ -93,7 +96,7 @@ class Game
   def draw
     @field.draw do |field, position|
       s = field.height.to_s
-      if field.height <= @water
+      if field.water
         s.blue
       elsif @positions.has_value? position
         s.red
