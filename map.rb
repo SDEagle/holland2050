@@ -2,7 +2,7 @@ require_relative 'field'
 require 'matrix'
 class Map
   def self.generate field_size, height
-    @field = Field.new Vector[field_size, field_size], Struct.new('FieldData', :height, :water)
+    @field = Field.new field_size, Struct.new('FieldData', :height, :water)
     @field.each { |field, _| field.height = 0; field.water = false }
 
     randoms = []

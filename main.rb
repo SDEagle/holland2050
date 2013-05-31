@@ -111,7 +111,7 @@ class Game
   end
 end
 
-g = Game.new 20, 10
+g = Game.new Vector[60, 40], 23
 5.times do
   Bot.new g
 end
