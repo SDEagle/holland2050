@@ -1,7 +1,6 @@
-require 'colorize'
-require_relative 'map'
 require 'curses'
 include Curses
+require_relative 'map'
 
 UP = 0
 LEFT = 1
@@ -125,7 +124,8 @@ class Game
 \\ `--.| |_/ / |    / /_\\ \\ `--.| |_| | |
  `--. \\  __/| |    |  _  | `--. \\  _  | |
 /\\__/ / |   | |____| | | |/\\__/ / | | |_|
-\\____/\\_|   \\_____/\\_| |_/\\____/\\_| |_(_)"
+\\____/\\_|   \\_____/\\_| |_/\\____/\\_| |_(_)
+"
       getch
       close_screen
       refresh
