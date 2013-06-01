@@ -57,7 +57,7 @@ class Game
 
   def push bot, direction
     @bots.each do |other|
-      move other, direction unless other.position != bot.positions || other == bot
+      other.push direction unless other.position != bot.position || other == bot
     end
   end
 
@@ -79,5 +79,9 @@ class Game
     puts '-----------------------------------------------------------'
     puts "bots left: #{@bots.size} - water level: #{@water}"
     draw
+  end
+
+  def any_bot_alive?
+    !@bots.empty?
   end
 end

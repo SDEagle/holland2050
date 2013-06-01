@@ -12,13 +12,20 @@ class Bot
   def move_possible? direction
     target = @position + DIRECTIONS[direction]
     @game.field.in_field?(target) && @game.field[target].height <= @game.field[@position].height + 1
+    # TODO other bots in way
   end
 
   def move direction
-    if !@used_action && move_possible?(direction)
+    if !@used_action
+      push direction
+      @used_action = true
+    end
+  end
+
+  def push direction
+    if move_possible? direction
       @position += DIRECTIONS[direction]
       @game.push self, direction
-      @used_action = true
     end
   end
 
@@ -49,10 +56,15 @@ class Bot
   end
 
   def get_position relative_position
-    if (@position - relative_position).r < @sight_radius
-      @game.field[@position + relative_position].hash
-      # TODO bot??
+    target = @position + relative_position
+    if relative_position.r < @sight_radius && @game.field.in_field?(target)
+      @game.field[@position + relative_position].to_h
+      # TODO other bots??
     end
+  end
+
+  def current_position
+    get_position Vector[0, 0]
   end
 
   def act water_level

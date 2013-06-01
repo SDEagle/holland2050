@@ -13,7 +13,7 @@ class BotAI
     @wrapper = Bot.new game, self
   end
 
-  [:move, :move_possible?, :dig, :raise, :raise_possible?].each do |method|
+  [:move, :move_possible?, :dig, :raise, :raise_possible?, :get_position, :current_position].each do |method|
     define_method method do |*args|
       @wrapper.send method, *args
     end
