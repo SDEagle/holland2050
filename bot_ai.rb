@@ -29,6 +29,6 @@ class BotAI
   end
 
   def act
-    puts 'implement that shit'
+    #puts 'implement that shit'
   end
 end

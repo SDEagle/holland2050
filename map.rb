@@ -1,7 +1,7 @@
 require_relative 'field'
 
 class Map
-  def self.generate field_size, height, peaks = field_size[0]
+  def self.generate field_size, height, peaks = field_size[0], valleys = field_size[1]
     @field = Field.new field_size, Struct.new('FieldData', :height, :water)
     @field.each { |field, _| field.height = 0; field.water = false }
 
@@ -9,14 +9,22 @@ class Map
     peaks.times do
       randoms << [rand(@field.height), rand(@field.width), rand(height)]
     end
+    random_valleys = []
+    valleys.times do
+      randoms << [rand(@field.height), rand(@field.width), -rand(height/2)]
+    end
 
     @field.width.times do |i|
       @field.height.times do |j|
         randoms.each do |peak|
-          @field[i,j].height = (peak[2] - dist([i, j], peak)).floor unless @field[i,j].height > peak[2] - dist([i, j], peak)
-          @field[i,j].height = 0 if @field[i,j].height < 0
-          @field[i,j].height = height if @field[i,j].height > height
+          if peak[2] < 0
+            @field[i,j].height = (height + peak[2] - dist([i, j], peak)).floor unless @field[i,j].height > height + peak[2] - dist([i, j], peak)
+          else
+            @field[i,j].height = (peak[2] - dist([i, j], peak)).floor unless @field[i,j].height > peak[2] - dist([i, j], peak)
+          end
         end
+        @field[i,j].height = 0 if @field[i,j].height < 0
+        @field[i,j].height = height if @field[i,j].height > height
       end
     end
 

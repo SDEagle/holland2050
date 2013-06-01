@@ -1,5 +1,7 @@
 require 'colorize'
 require_relative 'map'
+require 'curses'
+include Curses
 
 UP = 0
 LEFT = 1
@@ -75,10 +77,61 @@ class Game
     end
   end
 
-  def status
-    puts '-----------------------------------------------------------'
-    puts "bots left: #{@bots.size} - water level: #{@water}"
-    draw
+  def run
+    init_screen
+    start_color
+    init_pair(COLOR_BLUE,COLOR_BLUE,COLOR_BLACK)
+    init_pair(COLOR_GREEN,COLOR_GREEN,COLOR_BLACK)
+    init_pair(COLOR_RED,COLOR_RED,COLOR_BLACK)
+    begin
+      crmode
+      addstr "
+ _   _ _____ _      _       ___   _   _______   _____  _____ _____  _____
+| | | |  _  | |    | |     / _ \\ | \\ | |  _  \\ / __  \\|  _  |  ___||  _  |
+| |_| | | | | |    | |    / /_\\ \\|  \\| | | | | `' / /'| |/' |___ \\ | |/' |
+|  _  | | | | |    | |    |  _  || . ` | | | |   / /  |  /| |   \\ \\|  /| |
+| | | \\ \\_/ / |____| |____| | | || |\\  | |/ /  ./ /___\\ |_/ /\\__/ /\\ |_/ /
+\\_| |_/\\___/\\_____/\\_____/\\_| |_/\\_| \\_/___/   \\_____/ \\___/\\____/  \\___/
+
+                  Darfs ein bisschen Meer sein?"
+      getch
+      clear
+      while any_bot_alive? do
+        perform_round
+        bot_positions = @bots.map { |bot| bot.position }
+        @field.each do |field, position|
+          setpos(@field.height - 1 - position[1], position[0] * 3)
+          if field.water
+            attron(color_pair(COLOR_BLUE)|A_NORMAL) {
+              addstr("#{@water}")
+            }
+          elsif bot_positions.include? position
+            attron(color_pair(COLOR_RED)|A_NORMAL) {
+              addstr("#{field.height}")
+            }
+          else
+            attron(color_pair(COLOR_GREEN)|A_NORMAL) {
+              addstr("#{field.height}")
+            }
+          end
+        end
+        refresh
+        sleep 0.5
+      end
+      addstr "
+
+ ___________ _       ___   _____ _   _ _
+/  ___| ___ \\ |     / _ \\ /  ___| | | | |
+\\ `--.| |_/ / |    / /_\\ \\ `--.| |_| | |
+ `--. \\  __/| |    |  _  | `--. \\  _  | |
+/\\__/ / |   | |____| | | |/\\__/ / | | |_|
+\\____/\\_|   \\_____/\\_| |_/\\____/\\_| |_(_)"
+      getch
+      close_screen
+      refresh
+    ensure
+      close_screen
+    end
   end
 
   def any_bot_alive?
