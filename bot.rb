@@ -5,7 +5,7 @@ class BotWrapper
     @bot = bot
     @game = game
     @game.add_bot self
-    new_round
+    new_round nil, nil
   end
 
   def move direction
@@ -37,9 +37,24 @@ class BotWrapper
     end
   end
 
-  def act water, position, sight
-    new_round
-    @bot.act water, position, sight
+  def height_to_water
+    @game.map[@position].height - @water_level
+  end
+
+  def water_level
+    @water_level
+  end
+
+  def get_position relative_position
+    if (@position - relative_position).r < sight_radius # TODO
+      @game.map[@position + relative_position].to_hash
+      # TODO bot??
+    end
+  end
+
+  def act water_level, position
+    new_round water_level, position
+    @bot.act
   end
 
   def == other
@@ -54,8 +69,10 @@ class BotWrapper
 
   private
 
-  def new_round
+  def new_round water_level, position
     @used_action = false
+    @position = position
+    @water_level = water_level
   end
 end
 
@@ -82,7 +99,7 @@ class Bot
     @id.hash
   end
 
-  def act _, _, _
+  def act
     puts 'implement that shit'
   end
 end

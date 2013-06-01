@@ -16,10 +16,12 @@ RIGHT = 3
 DIRECTIONS = { UP => Vector[0, 1], LEFT => Vector[-1, 0], DOWN => Vector[0, -1], RIGHT => Vector[1, 0] }
 
 class Game
+  attr_reader :map
+
   def initialize field_size, height
     @field = Map.generate field_size, height
 
-    @water = -1
+    @water = 0
 
     @bots = []
     @positions = {}
@@ -36,7 +38,7 @@ class Game
   def perform_round
     @actions_per_round.times do
       @bots.each do |bot|
-        bot.act @water, @positions[bot], @field.filter_sight(@positions[bot], @sight_radius)
+        bot.act @water, @positions[bot]
       end
     end
     raise_water
@@ -111,13 +113,14 @@ class Game
   end
 end
 
-g = Game.new Vector[60, 40], 23
+g = Game.new Vector[50, 40], 23
 5.times do
   Bot.new g
 end
 
 g.status
-11.times do
+23.times do
+  readline
   g.perform_round
   g.status
 end
