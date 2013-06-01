@@ -1,5 +1,5 @@
 require_relative 'field'
-require 'matrix'
+
 class Map
   def self.generate field_size, height, peaks = field_size[0]
     @field = Field.new field_size, Struct.new('FieldData', :height, :water)

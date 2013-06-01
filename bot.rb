@@ -1,44 +1,47 @@
-class BotWrapper
-  attr_reader :bot
+class Bot
+  attr_reader :bot_ai, :position
 
   def initialize game, bot
-    @bot = bot
+    @bot_ai = bot
     @game = game
-    @game.add_bot self
-    new_round nil, nil
+    @position = @game.add_bot self
+    new_round nil
+    @sight_radius = 5
+  end
+
+  def move_possible? direction
+    target = @position + DIRECTIONS[direction]
+    @game.field.in_field?(target) && @game.field[target].height <= @game.field[@position].height + 1
   end
 
   def move direction
     if !@used_action && move_possible?(direction)
-      @game.move self, direction
+      @position += DIRECTIONS[direction]
+      @game.push self, direction
       @used_action = true
     end
   end
 
-  def move_possible? direction
-    @game.move_possible? self, direction
-  end
-
   def dig
     unless @used_action
-      @game.dig self
+      @game.field[@position].height -= 1
       @used_action = true
     end
   end
 
   def raise_possible?
-    @game.raise_possible? self
+    @game.field.neighbourhood(@position).any? { |neighbour| neighbour.height >= @game.field[@position].height }
   end
 
   def raise
     unless @used_action
-      @game.raise self
+      @game.field[@position].height += 1
       @used_action = true
     end
   end
 
   def height_to_water
-    @game.map[@position].height - @water_level
+    @game.field[@position].height - @water_level
   end
 
   def water_level
@@ -46,22 +49,22 @@ class BotWrapper
   end
 
   def get_position relative_position
-    if (@position - relative_position).r < sight_radius # TODO
-      @game.map[@position + relative_position].to_hash
+    if (@position - relative_position).r < @sight_radius
+      @game.field[@position + relative_position].hash
       # TODO bot??
     end
   end
 
-  def act water_level, position
-    new_round water_level, position
-    @bot.act
+  def act water_level
+    new_round water_level
+    @bot_ai.act
   end
 
   def == other
-    if other.is_a? Bot
-      @bot == other
-    elsif other.is_a? BotWrapper
-      @bot == other.bot
+    if other.is_a? BotAI
+      @bot_ai == other
+    elsif other.is_a? Bot
+      @bot_ai == other.bot_ai
     else
       false
     end
@@ -69,37 +72,8 @@ class BotWrapper
 
   private
 
-  def new_round water_level, position
+  def new_round water_level
     @used_action = false
-    @position = position
     @water_level = water_level
-  end
-end
-
-class Bot
-  attr_reader :id
-
-  def initialize game
-    @id = get_id
-    @wrapper = BotWrapper.new game, self
-  end
-
-  [:move, :move_possible?, :dig, :raise, :raise_possible?].each do |method|
-    define_method method do |*args|
-      @wrapper.send method, *args
-    end
-  end
-
-  def == other
-    return false unless other.is_a? Bot
-    @id == other.id
-  end
-
-  def hash
-    @id.hash
-  end
-
-  def act
-    puts 'implement that shit'
   end
 end
